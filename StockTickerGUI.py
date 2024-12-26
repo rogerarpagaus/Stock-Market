@@ -20,7 +20,6 @@ def fetch_data():
     
     ticker = yf.Ticker(ticker_symbol)
     current_price = ticker.history(period='1d')['Close'][0]
-    initial_price = data['Close'][0]
     
     fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(10, 8))
     
@@ -38,10 +37,10 @@ def fetch_data():
     canvas.draw()
     canvas.get_tk_widget().pack()
     
-    update_ticker_price(ticker_symbol, live_line, ax2, canvas, initial_price)
+    update_ticker_price(ticker_symbol, live_line, ax2, canvas)
     fetch_news(ticker_symbol)
 
-def update_ticker_price(ticker_symbol, live_line, ax, canvas, initial_price):
+def update_ticker_price(ticker_symbol, live_line, ax, canvas):
     ticker = yf.Ticker(ticker_symbol)
     current_price = ticker.history(period='1d')['Close'][0]
     
@@ -62,19 +61,7 @@ def update_ticker_price(ticker_symbol, live_line, ax, canvas, initial_price):
     ax.set_ylim(min(ydata) * 0.95, max(ydata) * 1.05)
     
     canvas.draw()
-    
-    # Calculate the percentage change
-    percentage_change = ((current_price - initial_price) / initial_price) * 100
-    
-    # Update the alert label
-    if percentage_change > 5:
-        alert_label.config(text=f"Price increased by {percentage_change:.2f}%", bg="green")
-    elif percentage_change < -5:
-        alert_label.config(text=f"Price decreased by {percentage_change:.2f}%", bg="red")
-    else:
-        alert_label.config(text=f"Price change: {percentage_change:.2f}%", bg="yellow")
-    
-    window.after(60000, update_ticker_price, ticker_symbol, live_line, ax, canvas, initial_price)  # Update every 60 seconds
+    window.after(60000, update_ticker_price, ticker_symbol, live_line, ax, canvas)  # Update every 60 seconds
 
 def fetch_news(ticker_symbol):
     ticker = yf.Ticker(ticker_symbol)
@@ -93,10 +80,6 @@ tk.Label(window, text="Enter the ticker symbol:").pack()
 entry = tk.Entry(window)
 entry.pack()
 tk.Button(window, text="Fetch Data", command=fetch_data).pack()
-
-# Create and place the alert label
-alert_label = tk.Label(window, text="Price change: 0.00%", bg="yellow", width=80)
-alert_label.pack()
 
 # Create and place the text box for news
 news_text = tk.Text(window, height=10, width=80)
