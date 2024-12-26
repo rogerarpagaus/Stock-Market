@@ -21,13 +21,46 @@ def fetch_data():
     ticker = yf.Ticker(ticker_symbol)
     current_price = ticker.history(period='1d')['Close'][0]
     
-    fig, ax = plt.subplots()
-    data.Close.plot(ax=ax)
-    ax.set_title(f'{ticker_symbol} Stock Price\nCurrent Price: ${current_price:.2f}')
+    fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(10, 8))
+    
+    # Plot historical data
+    data.Close.plot(ax=ax1)
+    ax1.set_title(f'{ticker_symbol} Stock Price\nCurrent Price: ${current_price:.2f}')
+    
+    # Plot for live updates
+    ax2.set_title(f'{ticker_symbol} Live Ticker')
+    live_line, = ax2.plot([], [], 'r-')
+    ax2.set_xlim(0, 10)
+    ax2.set_ylim(current_price * 0.95, current_price * 1.05)
     
     canvas = FigureCanvasTkAgg(fig, master=window)
     canvas.draw()
     canvas.get_tk_widget().pack()
+    
+    update_ticker_price(ticker_symbol, live_line, ax2, canvas)
+
+def update_ticker_price(ticker_symbol, live_line, ax, canvas):
+    ticker = yf.Ticker(ticker_symbol)
+    current_price = ticker.history(period='1d')['Close'][0]
+    
+    xdata = live_line.get_xdata()
+    ydata = live_line.get_ydata()
+    
+    if len(xdata) == 0:
+        xdata = [0]
+        ydata = [current_price]
+    else:
+        xdata = list(xdata) + [xdata[-1] + 1]
+        ydata = list(ydata) + [current_price]
+    
+    live_line.set_xdata(xdata)
+    live_line.set_ydata(ydata)
+    
+    ax.set_xlim(0, max(10, len(xdata)))
+    ax.set_ylim(min(ydata) * 0.95, max(ydata) * 1.05)
+    
+    canvas.draw()
+    window.after(60000, update_ticker_price, ticker_symbol, live_line, ax, canvas)  # Update every 60 seconds
 
 # Create the main window
 window = tk.Tk()
