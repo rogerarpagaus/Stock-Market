@@ -38,6 +38,7 @@ def fetch_data():
     canvas.get_tk_widget().pack()
     
     update_ticker_price(ticker_symbol, live_line, ax2, canvas)
+    fetch_news(ticker_symbol)
 
 def update_ticker_price(ticker_symbol, live_line, ax, canvas):
     ticker = yf.Ticker(ticker_symbol)
@@ -62,6 +63,14 @@ def update_ticker_price(ticker_symbol, live_line, ax, canvas):
     canvas.draw()
     window.after(60000, update_ticker_price, ticker_symbol, live_line, ax, canvas)  # Update every 60 seconds
 
+def fetch_news(ticker_symbol):
+    ticker = yf.Ticker(ticker_symbol)
+    news = ticker.news
+    
+    news_text.delete(1.0, tk.END)
+    for article in news[:5]:  # Show the latest 5 news articles
+        news_text.insert(tk.END, f"{article['title']}\n{article['link']}\n\n")
+
 # Create the main window
 window = tk.Tk()
 window.title("Stock Ticker")
@@ -71,6 +80,10 @@ tk.Label(window, text="Enter the ticker symbol:").pack()
 entry = tk.Entry(window)
 entry.pack()
 tk.Button(window, text="Fetch Data", command=fetch_data).pack()
+
+# Create and place the text box for news
+news_text = tk.Text(window, height=10, width=80)
+news_text.pack()
 
 # Run the application
 window.mainloop()
